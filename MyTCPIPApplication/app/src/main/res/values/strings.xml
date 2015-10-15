@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name1">TCP/IP Server</string>
+    <string name="app_name2">TCP/IP Client</string>
+    <string name="action_settings">Settings</string>
+</resources>
