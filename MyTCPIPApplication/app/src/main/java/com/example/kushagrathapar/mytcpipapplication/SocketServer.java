@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -14,6 +17,8 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by kushagrathapar on 10/13/15.
@@ -27,7 +32,7 @@ public class SocketServer extends Activity {
 
     Thread serverThread = null;
 
-    private TextView text;
+    private ListView listView;
 
     public static final int SERVERPORT = 6000;
 
@@ -37,7 +42,7 @@ public class SocketServer extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server);
 
-        text = (TextView) findViewById(R.id.text2);
+        listView = (ListView) findViewById(R.id.listView);
 
         updateConversationHandler = new Handler();
 
@@ -101,47 +106,38 @@ public class SocketServer extends Activity {
         }
 
         public void run() {
+            List<String> numbers = new ArrayList<>();
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    char[] buffer = new char[2];
+                    this.input.read(buffer);
 
-            while (!Thread.currentThread().isInterrupted()) {
-
-                try {
-
-                    File file = new File(
-                            Environment.getExternalStorageDirectory(),
-                            "test3.png");
-
-                    ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-                    FileOutputStream fos;
-                    byte[] bytes;
-                    try {
-                        bytes = (byte[])ois.readObject();
-                        fos = new FileOutputStream(file);
-                        fos.write(bytes);
-                        fos.close();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    String read = "File has been copied successfully";
-                    updateConversationHandler.post(new updateUIThread(read));
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    String read = new String(buffer);
+                    numbers.add(read);
+                    Log.d("outstream", read);
                 }
+                updateConversationHandler.post(new updateUIThread(numbers));
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                Log.d("Outstream", "Server is finished receiving all the messages");
             }
         }
 
     }
 
     class updateUIThread implements Runnable {
-        private String msg;
+        private List<String> list;
 
-        public updateUIThread(String str) {
-            this.msg = str;
+        public updateUIThread(List<String> stringList) {
+            this.list = stringList;
         }
 
         @Override
         public void run() {
-            text.setText(text.getText().toString()+"Client Says: "+ msg + "\n");
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(new SocketServer(), R.layout.activity_server, list);
+            listView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
         }
     }
 }

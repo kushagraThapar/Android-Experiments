@@ -3,16 +3,24 @@ package com.example.kushagrathapar.mytcpipapplication;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Random;
 
 /**
  * Created by kushagrathapar on 10/13/15.
@@ -33,24 +41,80 @@ public class SocketClient extends Activity {
         new Thread(new ClientThread()).start();
     }
 
+    public int nextPoisson() {
+        double lambda = 10;
+        Random r = new Random();
+        double elambda = Math.exp(-1* lambda);
+        double product = 1;
+        int count =  0;
+        int result=0;
+        while (product >= elambda) {
+            product *= r.nextDouble();
+            result = count;
+            count++; // keep result one behind
+        }
+        return result;
+    }
+
     public void onClick(View view) {
         try {
-            File file = new File(
-                    Environment.getExternalStorageDirectory(),
-                    "newImage.png");
 
-            byte[] bytes = new byte[(int) file.length()];
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file), 8192);
-            bis.read(bytes, 0, bytes.length);
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.writeObject(bytes);
-            oos.flush();
+            byte[] bytes;
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+            int i = 0, j;
+            while (i <= 1000) {
+                Queue<Packet> queue = new LinkedList<>();
+                Packet packet = new Packet();
+                int num = nextPoisson();
+                packet.number = String.valueOf(num);
+                bytes = String.valueOf(num).getBytes();
+                packet.setData(bytes);
+                Log.d("outstream", "The random num [" + num + "] in to the queue");
+                for (j = 0; j < num; j++) {
+                    queue.offer(packet);
+                }
+                if (queue.size() >= 12) {
+                    int count = 0;
+                    while (count < 12) {
+                        packet = queue.poll();
+                        try {
+                            outputStreamWriter.write(packet.number);
+                            outputStreamWriter.flush();
+                        } catch (IOException e) {
+
+                            e.printStackTrace();
+                        }
+                        count++;
+                    }
+                    Log.d("outstream", "The num: [" + num + "] is sent to the server");
+                } else {
+                    while (!queue.isEmpty()) {
+                        packet = queue.poll();
+                        try {
+                            outputStreamWriter.write(packet.number);
+                            outputStreamWriter.flush();
+                        } catch (IOException e) {
+
+                            e.printStackTrace();
+                        }
+                    }
+                    Log.d("outstream", "the num: [" + packet.number + "] is sent to the server");
+                }
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                i++;
+            }
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            Log.d("Outstream", "Client is finished sending the messages now.");
         }
     }
 
@@ -63,6 +127,7 @@ public class SocketClient extends Activity {
                 InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
 
                 socket = new Socket(serverAddr, SERVERPORT);
+
 
             } catch (UnknownHostException e1) {
                 e1.printStackTrace();
