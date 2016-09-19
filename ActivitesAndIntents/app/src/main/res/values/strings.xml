@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Activities And Intents</string>
+    <string name="open_custom_dialer">Open Custom Dialer</string>
+    <string name="open_browser">Open Browser</string>
+    <string name="welcome_message">Welcome to the Activities and Intents Application</string>
+    <string name="open_dialer">Open Dialer</string>
+</resources>
