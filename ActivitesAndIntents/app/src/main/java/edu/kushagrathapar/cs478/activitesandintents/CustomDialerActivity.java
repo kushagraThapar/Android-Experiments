@@ -13,15 +13,11 @@ import android.widget.Toast;
 
 public class CustomDialerActivity extends AppCompatActivity {
 
-    private final static String CUSTOM_DIALER_ACTIVITY = "CustomDialerActivity";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        logMessage("On Create Called");
         setContentView(R.layout.activity_custom_dialer);
     }
-
 
     /**
      * Called when user presses Open Dialer button
@@ -41,7 +37,7 @@ public class CustomDialerActivity extends AppCompatActivity {
             startActivity(dialerIntent);
         } else {
             Context context = getApplicationContext();
-            CharSequence text = "Please enter a valid phone number (xxx) yyy-zzzz";
+            CharSequence text = "Couldn't find any valid phone number in the text";
             int duration = Toast.LENGTH_SHORT;
 
             Toast toast = Toast.makeText(context, text, duration);
@@ -51,55 +47,76 @@ public class CustomDialerActivity extends AppCompatActivity {
 
 
     /**
-     * Validates and returns the formatted string for a valid phone number
+     * Validates and returns the formatted string for a valid phone number if present
      * <p/>
-     * pattern - (xxx)yyy-zzzz or (xxx) yyy-zzzz
+     * Returns the pattern - (xxx)yyy-zzzz or (xxx) yyy-zzzz
      *
      * @param text
-     * @return Null if phone number is not valid
+     * @return Null if phone number is not present in the input text
      */
     private String formatNumber(String text) {
         //  First validate the phone number, PhoneNumberUtils is lenient in checking the phone numbers
-        return PhoneNumberUtils.formatNumber(text, "US");
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '(' && text.charAt(i + 4) == ')') {
+                //  Now expect a phone number and go through various tests
+                try {
+                    int endIndex = i + 13;
+                    if (text.charAt(i + 5) == ' ') {
+                        endIndex = i + 14;
+                    }
+                    String phoneNumberString = text.substring(i, endIndex);
+                    if (isValidPhoneNumber(phoneNumberString)) {
+                        return phoneNumberString;
+                    }
+                } catch (IndexOutOfBoundsException e) {
+                    Log.e(this.getClass().getSimpleName(), e.getMessage());
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        logMessage("On Stop Called");
-    }
+    /**
+     * This method checks if the number is of the following pattern based on the length of the input
+     * (xxx)yyy-zzzz or (xxx) yyy-zzzz
+     *
+     * @param number
+     * @return true if the number matches the pattern otherwise false.
+     */
+    private boolean isValidPhoneNumber(String number) {
+        //  These are the basic validations.
+        if (number.length() != 13 && number.length() != 14) {
+            return false;
+        }
+        if (!number.contains("-")) {
+            return false;
+        }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        logMessage("On Start Called");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        logMessage("On Start Called");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        logMessage("On Destroy Called");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        logMessage("On Resume Called");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        logMessage("On Restart Called");
-    }
-
-    private void logMessage(String message) {
-        Log.i(CUSTOM_DIALER_ACTIVITY, message);
+        //  Check each and every character to be a digit except for (, ), - and space ' '
+        for (char c : number.substring(1, 4).toCharArray()) {
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        String onlyDigits = null;
+        if (number.length() == 13) {
+            if (number.charAt(8) != '-') {
+                return false;
+            }
+            onlyDigits = number.substring(5, 8) + number.substring(9);
+        }
+        if (number.length() == 14) {
+            if (number.charAt(5) != ' ' || number.charAt(9) != '-') {
+                return false;
+            }
+            onlyDigits = number.substring(6, 9) + number.substring(10);
+        }
+        for (char c : onlyDigits.toCharArray()) {
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        return PhoneNumberUtils.formatNumber(number, "US") != null;
     }
 }
