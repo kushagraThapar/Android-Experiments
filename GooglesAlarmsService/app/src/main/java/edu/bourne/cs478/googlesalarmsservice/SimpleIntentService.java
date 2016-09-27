@@ -1,4 +1,4 @@
-package edu.kushagrathapar.cs478.fakenotificationapplication;
+package edu.bourne.cs478.googlesalarmsservice;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
@@ -119,7 +119,7 @@ public class SimpleIntentService extends IntentService implements Runnable {
                     customToast.setDuration(Toast.LENGTH_LONG);
                     customToast.setView(layoutView);
                     customToast.show();
-                    Thread.sleep(1000 * 60 * 30);
+                    Thread.sleep(10000);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();

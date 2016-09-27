@@ -17,7 +17,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="63dp"
-        android:text="Welcome Sherry Paji" />
+        android:text="@string/welcome_message" />
 
     <Button
         android:id="@+id/startServiceButton"
