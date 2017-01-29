@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="edu.kushagrathapar.cs478.fragmentsandreceivers_3.HotelsActivity">
+    <item
+        android:id="@+id/action_restaurants"
+        android:orderInCategory="100"
+        android:title="@string/action_restaurant"
+        app:showAsAction="never" />
+</menu>

@@ -25,7 +25,7 @@ public class CustomDialerActivity extends AppCompatActivity {
      *
      * @param view
      */
-    public void opeDialer(View view) {
+    public void openDialer(View view) {
         EditText editText = (EditText) findViewById(R.id.customDialerText);
         String textEntered = editText.getText().toString();
 
